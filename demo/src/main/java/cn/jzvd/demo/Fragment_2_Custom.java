@@ -2,6 +2,7 @@ package cn.jzvd.demo;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -85,6 +86,12 @@ public class Fragment_2_Custom extends Fragment implements View.OnClickListener 
 
         jzvdStdRound.setUp(UrlsKt.getVideos()[1], UrlsKt.getTitles()[1]);
         Glide.with(this).load(UrlsKt.getThumbnails()[1]).into(jzvdStdRound.posterImageView);
+        jzvdStdRound.setOnJzPlayStateListener(new JzvdStd.OnJzPlayStateListener() {
+            @Override
+            public void onPlayState(int state) {
+                Log.e("zz","------------视频状态变化");
+            }
+        });
 
 
         jzNoTitle.setUp(UrlsKt.getVideos()[2], UrlsKt.getTitles()[2]);

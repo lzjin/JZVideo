@@ -87,6 +87,11 @@ public class JzvdStd extends Jzvd {
     protected ProgressBar mDialogBrightnessProgressBar;
     protected TextView mDialogBrightnessTextView;
     protected boolean mIsWifi;
+
+    public ImageView ivStartorPuase;
+    public int mVideoState = -1;
+    public boolean isShowBotProgress=true;
+
     public BroadcastReceiver wifiReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -127,6 +132,7 @@ public class JzvdStd extends Jzvd {
         clarity = findViewById(R.id.clarity);
         mRetryBtn = findViewById(R.id.retry_btn);
         mRetryLayout = findViewById(R.id.retry_layout);
+        ivStartorPuase = findViewById(R.id.iv_start);
 
         if (batteryTimeLayout == null) {
             batteryTimeLayout = new LinearLayout(context);
@@ -173,6 +179,9 @@ public class JzvdStd extends Jzvd {
         tinyBackImageView.setOnClickListener(this);
         clarity.setOnClickListener(this);
         mRetryBtn.setOnClickListener(this);
+        if(ivStartorPuase!=null){
+            ivStartorPuase.setOnClickListener(this);
+        }
     }
 
     public void setUp(JZDataSource jzDataSource, int screen, Class mediaInterfaceClass) {
@@ -225,6 +234,9 @@ public class JzvdStd extends Jzvd {
     public void onStatePreparingPlaying() {
         super.onStatePreparingPlaying();
         changeUIToPreparingPlaying();
+        if(mClickListener!=null){
+            mClickListener.onPlayState(JzvdStd.STATE_PREPARING_PLAYING);
+        }
     }
 
     public void onStatePreparingChangeUrl() {
@@ -236,6 +248,9 @@ public class JzvdStd extends Jzvd {
     public void onStatePlaying() {
         super.onStatePlaying();
         changeUiToPlayingClear();
+        if(mClickListener!=null){
+            mClickListener.onPlayState(JzvdStd.STATE_PLAYING);
+        }
     }
 
     @Override
@@ -243,12 +258,18 @@ public class JzvdStd extends Jzvd {
         super.onStatePause();
         changeUiToPauseShow();
         cancelDismissControlViewTimer();
+        if(mClickListener!=null){
+            mClickListener.onPlayState(JzvdStd.STATE_PAUSE);
+        }
     }
 
     @Override
     public void onStateError() {
         super.onStateError();
         changeUiToError();
+        if(mClickListener!=null){
+            mClickListener.onPlayState(JzvdStd.STATE_ERROR);
+        }
     }
 
     @Override
@@ -336,6 +357,18 @@ public class JzvdStd extends Jzvd {
             }
         } else if (i == R.id.back) {
             clickBack();
+        }else if(i ==R.id.iv_start){
+            if (mVideoState == 3) {
+                mVideoState = 4;
+                mediaInterface.pause();
+                onStatePause();
+            } else if (mVideoState == 4) {
+                mVideoState = 3;
+                mediaInterface.start();
+                onStatePlaying();
+            } else if (mVideoState == 5 || mVideoState == -1) {
+                startVideo();
+            }
         } else if (i == R.id.back_tiny) {
             clickBackTiny();
         } else if (i == R.id.clarity) {
@@ -636,6 +669,7 @@ public class JzvdStd extends Jzvd {
             case SCREEN_TINY:
                 break;
         }
+        mVideoState = 1;
     }
 
     public void changeUiToPreparing() {
@@ -649,6 +683,7 @@ public class JzvdStd extends Jzvd {
             case SCREEN_TINY:
                 break;
         }
+        mVideoState = 2;
     }
 
     public void changeUIToPreparingPlaying() {
@@ -688,7 +723,7 @@ public class JzvdStd extends Jzvd {
             case SCREEN_TINY:
                 break;
         }
-
+       mVideoState=3;
     }
 
     public void changeUiToPlayingClear() {
@@ -701,7 +736,10 @@ public class JzvdStd extends Jzvd {
             case SCREEN_TINY:
                 break;
         }
-
+        if(ivStartorPuase!=null) {
+            ivStartorPuase.setImageResource(R.drawable.c_video_stop_tiny);
+        }
+        mVideoState = 3;
     }
 
     public void changeUiToPauseShow() {
@@ -715,6 +753,10 @@ public class JzvdStd extends Jzvd {
             case SCREEN_TINY:
                 break;
         }
+        if(ivStartorPuase!=null) {
+            ivStartorPuase.setImageResource(R.drawable.c_video_play_tiny);
+        }
+        mVideoState = 4;
     }
 
     public void changeUiToPauseClear() {
@@ -727,7 +769,7 @@ public class JzvdStd extends Jzvd {
             case SCREEN_TINY:
                 break;
         }
-
+        mVideoState = 4;
     }
 
     public void changeUiToComplete() {
@@ -741,7 +783,10 @@ public class JzvdStd extends Jzvd {
             case SCREEN_TINY:
                 break;
         }
-
+        if(ivStartorPuase!=null){
+            ivStartorPuase.setImageResource(R.drawable.c_video_play_tiny);
+        }
+        mVideoState = 5;
     }
 
     public void changeUiToError() {
@@ -759,7 +804,7 @@ public class JzvdStd extends Jzvd {
             case SCREEN_TINY:
                 break;
         }
-
+        mVideoState = 6;
     }
 
     public void setAllControlsVisiblity(int topCon, int bottomCon, int startBtn, int loadingPro,
@@ -773,6 +818,9 @@ public class JzvdStd extends Jzvd {
         mRetryLayout.setVisibility(retryLayout);
     }
 
+    /**
+     * 更新点击图标
+     */
     public void updateStartImage() {
         if (state == STATE_PLAYING) {
             startButton.setVisibility(VISIBLE);
@@ -791,6 +839,14 @@ public class JzvdStd extends Jzvd {
         }
     }
 
+    /**
+     * 进度
+     * @param deltaX
+     * @param seekTime
+     * @param seekTimePosition
+     * @param totalTime
+     * @param totalTimeDuration
+     */
     @Override
     public void showProgressDialog(float deltaX, String seekTime, long seekTimePosition, String totalTime, long totalTimeDuration) {
         super.showProgressDialog(deltaX, seekTime, seekTimePosition, totalTime, totalTimeDuration);
@@ -825,6 +881,11 @@ public class JzvdStd extends Jzvd {
         }
     }
 
+    /**
+     *   音量
+     * @param deltaY
+     * @param volumePercent
+     */
     @Override
     public void showVolumeDialog(float deltaY, int volumePercent) {
         super.showVolumeDialog(deltaY, volumePercent);
@@ -861,6 +922,10 @@ public class JzvdStd extends Jzvd {
         }
     }
 
+    /**
+     * 亮度
+     * @param brightnessPercent
+     */
     @Override
     public void showBrightnessDialog(int brightnessPercent) {
         super.showBrightnessDialog(brightnessPercent);
@@ -926,6 +991,11 @@ public class JzvdStd extends Jzvd {
     public void onCompletion() {
         super.onCompletion();
         cancelDismissControlViewTimer();
+        //播放完成 显示最后一帧图
+        posterImageView.setVisibility(View.GONE);
+        if(mClickListener!=null){
+            mClickListener.onPlayState(JzvdStd.STATE_PREPARING_PLAYING);
+        }
     }
 
     @Override
@@ -945,7 +1015,7 @@ public class JzvdStd extends Jzvd {
                 startButton.setVisibility(View.INVISIBLE);
 
                 if (screen != SCREEN_TINY) {
-                    bottomProgressBar.setVisibility(View.VISIBLE);
+                    bottomProgressBar.setVisibility(isShowBotProgress?View.VISIBLE:View.GONE);
                 }
             });
         }
@@ -973,6 +1043,16 @@ public class JzvdStd extends Jzvd {
         public void run() {
             dissmissControlView();
         }
+    }
+
+    public interface OnJzPlayStateListener {
+        void onPlayState(int state);
+    }
+
+    private OnJzPlayStateListener mClickListener;
+
+    public void setOnJzPlayStateListener(OnJzPlayStateListener listener) {
+        mClickListener = listener;
     }
 
 }

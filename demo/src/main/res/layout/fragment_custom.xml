@@ -42,7 +42,7 @@
             <cn.jzvd.demo.CustomJzvd.JzvdStdRound
                 android:id="@+id/jz_round"
                 android:layout_width="match_parent"
-                app:radius="20dp"
+                app:radius="8dp"
                 android:layout_height="200dp" />
 
             <TextView

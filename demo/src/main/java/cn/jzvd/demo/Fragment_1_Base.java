@@ -88,6 +88,7 @@ public class Fragment_1_Base extends Fragment implements View.OnClickListener {
                 , JzvdStd.SCREEN_NORMAL);
         Jzvd.PROGRESS_DRAG_RATE = 2f;//设置播放进度条手势滑动阻尼系数
         Glide.with(this).load(UrlsKt.getCndThumbnail()[0]).into(mJzvdStd.posterImageView);
+        mJzvdStd.mVideoState=2;
     }
 
 
