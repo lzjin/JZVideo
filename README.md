@@ -8,9 +8,8 @@
 
 1.添加类库
 ```gradle
-implementation 'com.github.lzjin:JZVideo:v7.7.2'
+implementation 'com.github.lzjin:JZVideo:v7.7.3'
 
-implementation 'com.github.lzjin:jiaozivideoplayer:v7.7.2'
 ```
 
 2.添加布局
